@@ -4,11 +4,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Ticket;
 use App\Http\Controllers\Api\V1\TicketController;
-use App\Http\Controllers\Api\V1\UsersController;
+use App\Http\Controllers\Api\V1\AuthorsController;
+use App\Http\Controllers\Api\V1\AuthorTicketsController;
 
 Route::middleware('auth:sanctum')->group(function(){
     Route::apiResource('tickets', TicketController::class);
-    Route::apiResource('users', UsersController::class);
+    Route::apiResource('authors', AuthorsController::class);
+    Route::apiResource('authors.tickets', AuthorTicketsController::class);
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

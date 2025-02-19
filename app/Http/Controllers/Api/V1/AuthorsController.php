@@ -7,18 +7,15 @@ use App\Http\Requests\Api\V1\StoreUserRequest;
 use App\Http\Requests\Api\V1\UpdateUserRequest;
 use App\Models\User;
 use App\Http\Resources\V1\UserResource;
-
-class UsersController extends ApiController
+use App\Http\Filters\V1\AuthorFilter;
+class AuthorsController extends ApiController
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(AuthorFilter $filters)
     {
-        if($this->include('tickets')){
-            return UserResource::collection(User::with('tickets')->paginate());
-        }
-        return UserResource::collection(User::paginate());
+        return UserResource::collection(User::filter($filters)->paginate());
     }
 
     /**
@@ -32,12 +29,12 @@ class UsersController extends ApiController
     /**
      * Display the specified resource.
      */
-    public function show(User $user)
+    public function show(User $author)
     {
         if($this->include('tickets')){
-            return new UserResource($user->load('tickets'));
+            return new UserResource($author->load('tickets'));
         }
-        return new UserResource($user);
+        return new UserResource($author);
     }
 
     /**
