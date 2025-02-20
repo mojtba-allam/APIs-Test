@@ -10,7 +10,7 @@ abstract class QueryFilter
 {
     protected $builder;
     protected $request;
-
+    protected $sortable = [];
     public function __construct(Request $request){
         $this->request = $request;
     }
@@ -44,7 +44,16 @@ abstract class QueryFilter
                 $direction = 'desc';
                 $sortAttribute = substr($sortAttribute, 1);
             }
-            $this->builder->orderBy($sortAttribute, $direction);
+
+            if (!in_array($sortAttribute, $this->sortable)&& !array_key_exists($sortAttribute, $this->sortable)){
+                continue;
+            }
+            $columName = $this->sortable[$sortAttribute] ?? null;
+
+            if ($columName === null){
+                $columName = $sortAttribute;
+            }
+            $this->builder->orderBy($columName, $direction);
         }
     }
 }
