@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\ReplaceTicketRequest;
 use App\Models\Ticket;
 use App\Http\Requests\Api\V1\StoreTicketRequest;
@@ -10,10 +9,13 @@ use App\Http\Requests\Api\V1\UpdateTicketRequest;
 use App\Http\Resources\V1\TicketResource;
 use App\Http\Filters\V1\TicketFilter;
 use App\Models\User;
+use App\Policies\V1\TicketPolicy;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class TicketController extends ApiController
 {
+    protected $policyclass = TicketPolicy::class;
     /**
      * Display a listing of the resource.
      */
@@ -46,7 +48,19 @@ class TicketController extends ApiController
      */
     public function update(UpdateTicketRequest $request, $ticket_id)
     {
-        //
+        try {
+            $ticket = Ticket::findOrFail($ticket_id);
+
+            $this->isAble('update', $ticket);
+
+            $ticket->update($request->mappedAttributes());
+            return new TicketResource($ticket);
+
+        }catch (ModelNotFoundException $exception){
+            return $this->error('Ticket cannot be found',404);
+        }catch (AuthorizationException $exception){
+            return $this->error('You do not have permission to perform this action',401);
+        }
     }
 
     public function replace(ReplaceTicketRequest $request,$ticket_id){
@@ -54,14 +68,7 @@ class TicketController extends ApiController
         try {
             $ticket = Ticket::findOrFail($ticket_id);
 
-            $model =[
-                'title' => $request->input('data.attributes.title'),
-                'description' => $request->input('data.attributes.title'),
-                'status' => $request->input('data.attributes.status'),
-                'user_id' => $request->input('data.relationships.author.data.id'),
-            ];
-
-            $ticket->update($model);
+            $ticket->update($request->mappedAttributes());
         return new TicketResource($ticket);
 
         }catch (ModelNotFoundException $exception){
@@ -83,13 +90,8 @@ class TicketController extends ApiController
                 'error' => 'The user you are trying to create does not exist.'
             ]);
         }
-        $model =[
-            'title' => $request->input('data.attributes.title'),
-            'description' => $request->input('data.attributes.title'),
-            'status' => $request->input('data.attributes.status'),
-            'user_id' => $request->input('data.relationships.author.data.id'),
-        ];
-        return new TicketResource(Ticket::create($model));
+
+        return new TicketResource($request->mappedAttributes());
     }
     /**
      * Remove the specified resource from storage.
