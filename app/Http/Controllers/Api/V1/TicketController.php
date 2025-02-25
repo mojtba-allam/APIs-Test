@@ -11,6 +11,7 @@ use App\Http\Filters\V1\TicketFilter;
 use App\Models\User;
 use App\Policies\V1\TicketPolicy;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class TicketController extends ApiController
@@ -68,6 +69,9 @@ class TicketController extends ApiController
         try {
             $ticket = Ticket::findOrFail($ticket_id);
 
+            $this->isAble('replace', $ticket);
+
+
             $ticket->update($request->mappedAttributes());
         return new TicketResource($ticket);
 
@@ -84,14 +88,15 @@ class TicketController extends ApiController
     {
         try {
 
-        $user = User::findOrFail($request->input('data.relationships.author.data.id'));
-        }catch (ModelNotFoundException $exception){
-            return $this->ok('User not found',[
-                'error' => 'The user you are trying to create does not exist.'
-            ]);
+
+        $this->isAble('store', Ticket::class);
+
+        return new TicketResource(Ticket::create($request->mappedAttributes()));
+
+        }catch (AuthenticationException $ex){
+            return $this->error('You are not authorized.',401);
         }
 
-        return new TicketResource($request->mappedAttributes());
     }
     /**
      * Remove the specified resource from storage.
@@ -100,6 +105,10 @@ class TicketController extends ApiController
     {
         try {
             $ticket = Ticket::findOrFail($ticket_id);
+
+            $this->isAble('delete', $ticket);
+
+
             $ticket->delete();
 
             return $this->ok('Ticket has been deleted');
