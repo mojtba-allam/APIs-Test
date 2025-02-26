@@ -2,8 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Models\Ticket;
 use App\Http\Controllers\Api\V1\TicketController;
+use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\AuthorsController;
 use App\Http\Controllers\Api\V1\AuthorTicketsController;
 
@@ -12,7 +12,11 @@ Route::middleware('auth:sanctum')->group(function(){
     Route::put('tickets/{ticket}', [TicketController::class,'replace']);
     Route::patch('tickets/{ticket}', [TicketController::class,'update']);
 
-    Route::apiResource('authors', AuthorsController::class);
+    Route::apiResource('users', UserController::class)->except('update');
+    Route::put('users/{users}', [UserController::class,'replace']);
+    Route::patch('users/{users}', [UserController::class,'update']);
+
+    Route::apiResource('authors', AuthorsController::class)->except(['update','update','delete']);
     Route::apiResource('authors.tickets', AuthorTicketsController::class)->except('update');
     Route::put('authors/{author}/tickets/{ticket}', [AuthorTicketsController::class,'replace']);
     Route::patch('authors/{author}/tickets/{ticket}', [AuthorTicketsController::class,'update']);

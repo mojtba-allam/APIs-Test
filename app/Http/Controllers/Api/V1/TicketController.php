@@ -30,54 +30,38 @@ class TicketController extends ApiController
     /**
      * Display the specified resource.
      */
-    public function show($ticket_id)
+    public function show($ticket)
     {
-        try {
-            $ticket = Ticket::findOrFail($ticket_id);
-
         if($this->include('author')){
             return new TicketResource($ticket->load('user'));
         }
         return new TicketResource($ticket);
-        }catch (ModelNotFoundException $exception){
-            return $this->error('Ticket cannot be found',404);
-        }
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateTicketRequest $request, $ticket_id)
+    public function update(UpdateTicketRequest $request, Ticket $ticket)
     {
-        try {
-            $ticket = Ticket::findOrFail($ticket_id);
 
-            $this->isAble('update', $ticket);
+            if ($this->isAble('update', $ticket)){
+                $ticket->update($request->mappedAttributes());
+                return new TicketResource($ticket);
+            }
+            return $this->notAuthorized('You do not have permission to perform this action');
+
+
+
+    }
+
+    public function replace(ReplaceTicketRequest $request,Ticket $ticket){
+
+            if ($this->isAble('replace', $ticket)){
 
             $ticket->update($request->mappedAttributes());
             return new TicketResource($ticket);
-
-        }catch (ModelNotFoundException $exception){
-            return $this->error('Ticket cannot be found',404);
-        }catch (AuthorizationException $exception){
-            return $this->error('You do not have permission to perform this action',401);
-        }
-    }
-
-    public function replace(ReplaceTicketRequest $request,$ticket_id){
-
-        try {
-            $ticket = Ticket::findOrFail($ticket_id);
-
-            $this->isAble('replace', $ticket);
-
-
-            $ticket->update($request->mappedAttributes());
-        return new TicketResource($ticket);
-
-        }catch (ModelNotFoundException $exception){
-            return $this->error('Ticket cannot be found',404);
-        }
+            }
+            return $this->notAuthorized('You do not have permission to perform this action');
 
     }
 
@@ -86,34 +70,20 @@ class TicketController extends ApiController
      */
     public function store(StoreTicketRequest $request)
     {
-        try {
-
-
-        $this->isAble('store', Ticket::class);
-
-        return new TicketResource(Ticket::create($request->mappedAttributes()));
-
-        }catch (AuthenticationException $ex){
-            return $this->error('You are not authorized.',401);
+        if ($this->isAble('store', Ticket::class)){
+            return new TicketResource(Ticket::create($request->mappedAttributes()));
         }
-
+            return $this->notAuthorized('You are not authorized.');
     }
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($ticket_id)
+    public function destroy(Ticket $ticket)
     {
-        try {
-            $ticket = Ticket::findOrFail($ticket_id);
-
-            $this->isAble('delete', $ticket);
-
-
+            if($this->isAble('delete', $ticket)){
             $ticket->delete();
-
             return $this->ok('Ticket has been deleted');
-        }catch (ModelNotFoundException $exception){
-            return $this->error('Ticket cannot be found',404);
-        }
+            }
+            return $this->notAuthorized('You do not have permission to perform this action');
     }
 }
