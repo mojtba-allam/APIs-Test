@@ -8,7 +8,7 @@ use App\Http\Requests\Api\V1\UpdateTicketRequest;
 use App\Http\Resources\V1\TicketResource;
 use App\Models\Ticket;
 use App\Http\Filters\V1\TicketFilter;
-use App\Policies\Api\V1\TicketPolicy;
+use App\Policies\V1\TicketPolicy;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
